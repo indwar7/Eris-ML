@@ -1,0 +1,44 @@
+{
+  "dataset_name": "Online Retail II",
+  "source_url": "https://archive.ics.uci.edu/dataset/502/online+retail+ii",
+  "download_urls": [
+    "https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip"
+  ],
+  "license_name": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "license_evidence": "UCI dataset page HTML contains license string 'CC BY 4.0'",
+  "citation": "Chen, D. (2012). Online Retail II [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5CG6D.",
+  "accession_or_doi": "10.24432/C5CG6D",
+  "uci_dataset_id": 502,
+  "access_date": "2026-07-05",
+  "retrieved_at_utc": "2026-07-05T16:36:26+00:00",
+  "downloaded_files": [
+    "online_retail_ii.zip",
+    "online_retail_ii.xlsx",
+    "uci_api_metadata.json"
+  ],
+  "sha256_checksums": {
+    "online_retail_ii.xlsx": "bcbe73b35f5b7babf197fb0cb983a11f5d9ff929078d4aa53d171b1f2df2e980",
+    "online_retail_ii.zip": "572e36277c2390fbfde10664750731e0a86f55e33470d91919085f0408e67bfb",
+    "retail_transactions_2009_2011.csv": "f341810fd1444dbd029019fb2a7623a3e067a146bd58860a6d28914c2b2e51e5",
+    "uci_api_metadata.json": "8c343a720e559b01881f7ac1a0c332fd91c2ced82f8192c35bafae2b32f31343"
+  },
+  "transformation_summary": "prepare.py keeps every real transaction field untouched and adds a deterministic synthetic overlay (seed 20260705): a hidden 'You may also like' recommendation policy is replayed at fixed anchor dates over real customer histories to emit 10-item slates; a seeded minority of slates is corrupted by one of three realistic failure modes (popularity fallback, price-band shift, stale index). Public files: cleaned transactions, catalog, labeled train slates with healthy references, unlabeled test slates, sample submission. Private: per-test-slate flag, failure mode, healthy slate and emitted slate for consistency grading. Full details in prepare.py.",
+  "citation_evidence": "Citation text copied verbatim from the live UCI dataset page (APA block) on access_date.",
+  "derived_files": {
+    "retail_transactions_2009_2011.csv": "lossless CSV export of the official xlsx workbook (canonical platform upload; prepare.py reads it, byte-identical outputs verified against the xlsx path)"
+  },
+  "uci_api_evidence": {
+    "note": "Key fields extracted from the live UCI metadata API response fetched on access_date (verbatim copy kept in the challenge repository as data/raw/uci_api_metadata.json).",
+    "uci_id": 502,
+    "name": "Online Retail II",
+    "repository_url": "https://archive.ics.uci.edu/dataset/502/online+retail+ii",
+    "dataset_doi": "10.24432/C5CG6D",
+    "creators": [
+      "Daqing Chen"
+    ],
+    "year_of_dataset_creation": 2012,
+    "num_instances": 1067371,
+    "abstract": "A real online retail transaction data set of two years."
+  }
+}

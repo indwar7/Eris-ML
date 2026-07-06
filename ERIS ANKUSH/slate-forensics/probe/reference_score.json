@@ -1,0 +1,31 @@
+{
+  "final_score": 0.899518,
+  "S_repair": 0.811053,
+  "S_audit": 0.991421,
+  "S_mode": 0.982826,
+  "S_consistency": 1.0,
+  "repair_rbo_by_condition": {
+    "none": 0.996988,
+    "popularity_fallback": 0.752712,
+    "price_band_shift": 0.754867,
+    "stale_index": 0.739644
+  },
+  "audit_recall_by_mode": {
+    "popularity_fallback": 1.0,
+    "price_band_shift": 1.0,
+    "stale_index": 0.960526
+  },
+  "audit_clean_specificity": 0.996,
+  "mode_recall_by_mode": {
+    "popularity_fallback": 1.0,
+    "price_band_shift": 0.987952,
+    "stale_index": 0.960526
+  },
+  "consistency_violations": {
+    "flag_clean_but_slate_differs": 0,
+    "flag_corrupted_but_slate_unchanged": 0,
+    "flag_clean_but_mode_set": 0,
+    "flag_corrupted_but_mode_none": 0
+  },
+  "ungrounded_item_rate_informational": 0.0
+}

@@ -1,0 +1,47 @@
+challenge:
+  title: "Slate Forensics: Auditing and Repairing a Broken Product Recommender"
+  domain: recommendation
+  task_type: recommendation_policy_audit_and_repair
+  metric: composite_forensic_score   # defined in grade.py and problem_description.md
+  direction: maximize
+  score_bounds: [0.0, 1.0]
+
+dataset:
+  source_name: Online Retail II
+  source_url: https://archive.ics.uci.edu/dataset/502/online+retail+ii
+  license: CC BY 4.0
+  license_url: https://creativecommons.org/licenses/by/4.0/
+  doi: 10.24432/C5CG6D
+  provenance_file: data/source_metadata.json
+
+files:
+  problem_description: problem_description.md
+  dataset_description: dataset_description.md
+  rubrics: rubrics.md
+  prepare: prepare.py
+  grade: grade.py
+  solution: solution.ipynb
+  download: download_data.py
+  public_dir: dataset/public
+  private_dir: dataset/private
+  answers: dataset/private/answers.csv
+
+submission:
+  file_name: submission.csv
+  id_column: slate_id
+  columns: [slate_id, corrupted, mode, position, stock_code]
+  rows_per_slate: 10
+  expected_rows: 7570
+  mode_vocabulary: [none, popularity_fallback, price_band_shift, stale_index]
+
+grading:
+  components:
+    S_repair: 0.50      # bucket-balanced RBO@10 vs the hidden healthy slate
+    S_audit: 0.30       # balanced corruption detection
+    S_mode: 0.20        # macro failure-mode recall on corrupted requests
+  consistency_multiplier: "0.7 + 0.3 * S_consistency"
+  stratification_buckets: [none, popularity_fallback, price_band_shift, stale_index]
+
+runtime:
+  max_minutes: 30
+  environment: kaggle_python

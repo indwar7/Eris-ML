@@ -1,0 +1,43 @@
+# Task configuration — Restock Radar: Next-Week Grocery Purchase Ranking
+name: restock-radar-next-week-grocery-ranking
+title: "Restock Radar: Next-Week Grocery Purchase Ranking"
+domain: recommendation        # personalized top-k ranking from implicit feedback
+task_type: recommendation-implicit-feedback-topk
+modality: tabular-event-logs  # no pretrained/foundation models, no LLMs, no external data
+dataset:
+  name: online-grocery-interaction-logs-synthetic
+  description: dataset/dataset-description.md
+  generator: dataset/generate_dataset.py        # synthetic, deterministic, seed 20260704
+  raw_files:
+    - dataset/raw/interactions.csv
+    - dataset/raw/items.csv
+    - dataset/raw/users.csv
+    - dataset/raw/promotions.csv
+problem_description: problem-description.md
+rubrics: rubrics.md
+prepare:
+  script: prepare.py                            # deterministic; byte-identical reruns
+  public:
+    - prepared/public/train.csv
+    - prepared/public/items.csv
+    - prepared/public/users.csv
+    - prepared/public/promotions.csv
+    - prepared/public/test.csv
+    - prepared/public/sample_submission.csv
+  private:
+    - prepared/private/answers.csv
+grade:
+  script: grade.py
+  usage: "python grade.py submission.csv --answers prepared/private/answers.csv"
+  metric: ndcg_at_20                            # mean NDCG@20, binary relevance
+  direction: maximize
+  bounds: [0.0, 1.0]
+  random_baseline: 0.006
+  popularity_baseline: 0.032
+  reference_solution_score: 0.504
+submission:
+  filename: submission.csv
+  columns: [user_id, rank, item_id]
+  rows: 20 per target user (1600 users -> 32000 rows), ranks 1-20 unique per user
+reference_solution: solution.ipynb
+environment: kaggle-python-docker-image         # pandas/numpy/lightgbm are sufficient

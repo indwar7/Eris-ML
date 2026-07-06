@@ -1,0 +1,36 @@
+# Task configuration — Silent Degradation: 48-Hour Pump Failure Risk
+name: silent-degradation-pump-failure-48h
+title: "Silent Degradation: 48-Hour Pump Failure Risk"
+domain: from-scratch          # build & train a model from scratch on the provided data
+task_type: from-scratch-supervised-learning   # own features + own classifier/ranker, no pretrained models
+modality: from-scratch        # no pretrained/foundation models, no LLMs, no external data
+dataset:
+  name: coolant-pump-fleet-telemetry-synthetic
+  description: dataset/dataset-description.md
+  generator: dataset/generate_dataset.py       # synthetic, deterministic, seed 20260703
+  raw_files:
+    - dataset/raw/sensor_readings.csv
+    - dataset/raw/failure_log.csv
+    - dataset/raw/pump_metadata.csv
+problem_description: problem-description.md
+rubrics: rubrics.md
+prepare:
+  script: prepare.py                            # deterministic; byte-identical reruns
+  public:
+    - prepared/public/train.csv
+    - prepared/public/test_features.csv
+    - prepared/public/sample_submission.csv
+  private:
+    - prepared/private/answers.csv
+grade:
+  script: grade.py
+  usage: "python grade.py submission.csv --labels prepared/private/answers.csv"
+  metric: average_precision                     # sklearn.metrics.average_precision_score
+  direction: maximize
+  random_baseline: 0.15                         # evaluation-set positive rate
+submission:
+  filename: submission.csv
+  columns: [snapshot_id, prediction]
+  rows: one per snapshot_id in test_features.csv (800)
+reference_solution: solution.ipynb
+environment: kaggle-python-docker-image         # pandas/numpy/scikit-learn only are needed

@@ -1,0 +1,17 @@
+# Rubrics — Restock Radar: Next-Week Grocery Purchase Ranking
+
+Task-specific criteria for what good ML engineering looks like on this
+task. Evaluated alongside the NDCG@20 score.
+
+| # | Level | Type | Rubric |
+|---|---|---|---|
+| 1 | **REQUIRED** | DATA_HANDLING | **Deduplicates the log-replay rows** (~1.5% of `train.csv` is an exact byte-for-byte duplicate of another row) before computing any counts, co-occurrence statistics, or frequency features — e.g. via `drop_duplicates()` on the full rows — and shows awareness of why (replayed events inflate every frequency-based signal). Simply loading the CSV and aggregating raw rows fails this criterion. |
+| 2 | **REQUIRED** | TRAINING | **Validates temporally, mirroring the task setup**: holds out one or more of the final public weeks as a label window with features built strictly from earlier weeks (e.g. features ≤ week 10 → labels = week 11), and evaluates with NDCG@20 or a directly comparable ranking metric. Must NOT use shuffled row-level or (user,item)-level random splits — the event streams are dense and autocorrelated, so random splits place near-identical habit rows on both sides and grossly overstate skill. |
+| 3 | **REQUIRED** | FEATURE_ENGINEERING | **Treats purchases as the primary demand signal and handles the promotion exposure bias**: promo weeks inflate an item's views ~2.5× but its purchases only ~1.35× (banner traffic converts at ~half the normal rate — measurable from `train.csv` + `promotions.csv`). Solutions must not rank items by raw view counts or view-weighted popularity without correcting for or down-weighting promo-inflated views (e.g. weighting purchases ≫ views, using view→purchase conversion, or promo-adjusting exposure features). |
+| 4 | **REQUIRED** | MODELING | **Personalizes per user rather than emitting one global list**: recommendations are driven by each user's own history (repeat purchases, category affinities, collaborative signals). Submitting the same or near-same 20 items for most users (global popularity ≈ 0.03 NDCG@20) fails; the solution should demonstrate in its own validation that it clearly beats a popularity-only ranking. |
+| 5 | **RECOMMENDED** | FEATURE_ENGINEERING | **Models restock timing, not just recency**: uses the per-(user, item) or per-category inter-purchase rhythm — e.g. weeks-since-last-purchase relative to the typical gap ("due-ness") — so that a weekly staple bought 8 days ago ranks differently from a 6-week household item bought 8 days ago. Pure "most recently/most frequently bought first" ordering leaves this signal on the table. |
+| 6 | **RECOMMENDED** | MODELING | **Covers cold-start items**: the 119 items launched in the last two public weeks account for ~4–5% of prediction-week purchases and have almost no co-occurrence history. The solution includes them in candidate generation and scores them via content signals (category, brand, price, launch recency) and/or the week-12 promo calendar, rather than restricting candidates to items with long histories. |
+| 7 | UNIVERSAL | CODE_QUALITY | **Runs end-to-end reproducibly and emits a valid submission**: fixed seeds, reads only `./dataset/public/`, writes `./working/submission.csv` with exactly the 1,600 target users × ranks 1–20 and no duplicate items within a user, verified in-notebook (e.g. asserts) before writing. |
+
+**Level summary:** 4 REQUIRED + 2 RECOMMENDED + 1 UNIVERSAL (majority
+REQUIRED/RECOMMENDED, as the spec requires).

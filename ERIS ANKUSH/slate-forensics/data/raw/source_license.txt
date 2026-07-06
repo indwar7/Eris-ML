@@ -1,0 +1,7 @@
+Online Retail II
+Source: https://archive.ics.uci.edu/dataset/502/online+retail+ii
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+License URL: https://creativecommons.org/licenses/by/4.0/
+License evidence at download time: UCI dataset page HTML contains license string 'CC BY 4.0'
+Attribution: Chen, D. (2012). Online Retail II [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5CG6D.
+CC BY 4.0 permits redistribution, adaptation and commercial use provided attribution is given. This challenge redistributes a cleaned/derived form with attribution; see dataset_description.md.

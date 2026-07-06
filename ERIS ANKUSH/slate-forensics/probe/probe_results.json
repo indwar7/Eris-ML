@@ -1,0 +1,122 @@
+{
+  "copy_emitted": {
+    "final_score": 0.330936,
+    "S_repair": 0.361873,
+    "S_audit": 0.5,
+    "S_mode": 0.0,
+    "S_consistency": 1.0,
+    "repair_rbo_by_condition": {
+      "none": 1.0,
+      "popularity_fallback": 0.081359,
+      "price_band_shift": 0.099003,
+      "stale_index": 0.267129
+    },
+    "audit_recall_by_mode": {
+      "popularity_fallback": 0.0,
+      "price_band_shift": 0.0,
+      "stale_index": 0.0
+    },
+    "audit_clean_specificity": 1.0,
+    "mode_recall_by_mode": {
+      "popularity_fallback": 0.0,
+      "price_band_shift": 0.0,
+      "stale_index": 0.0
+    },
+    "consistency_violations": {
+      "flag_clean_but_slate_differs": 0,
+      "flag_corrupted_but_slate_unchanged": 0,
+      "flag_clean_but_mode_set": 0,
+      "flag_corrupted_but_mode_none": 0
+    }
+  },
+  "random_guess": {
+    "final_score": 0.164954,
+    "S_repair": 0.000784,
+    "S_audit": 0.514465,
+    "S_mode": 0.186145,
+    "S_consistency": 0.531044,
+    "repair_rbo_by_condition": {
+      "none": 0.001015,
+      "popularity_fallback": 0.0015,
+      "price_band_shift": 0.000271,
+      "stale_index": 0.00035
+    },
+    "audit_recall_by_mode": {
+      "popularity_fallback": 0.581633,
+      "price_band_shift": 0.578313,
+      "stale_index": 0.486842
+    },
+    "audit_clean_specificity": 0.48,
+    "mode_recall_by_mode": {
+      "popularity_fallback": 0.183673,
+      "price_band_shift": 0.216867,
+      "stale_index": 0.157895
+    },
+    "consistency_violations": {
+      "flag_clean_but_slate_differs": 355,
+      "flag_corrupted_but_slate_unchanged": 0,
+      "flag_clean_but_mode_set": 0,
+      "flag_corrupted_but_mode_none": 0
+    }
+  },
+  "all_popular": {
+    "final_score": 0.251614,
+    "S_repair": 0.069895,
+    "S_audit": 0.5,
+    "S_mode": 0.333333,
+    "S_consistency": 1.0,
+    "repair_rbo_by_condition": {
+      "none": 0.06383,
+      "popularity_fallback": 0.074107,
+      "price_band_shift": 0.069205,
+      "stale_index": 0.07244
+    },
+    "audit_recall_by_mode": {
+      "popularity_fallback": 1.0,
+      "price_band_shift": 1.0,
+      "stale_index": 1.0
+    },
+    "audit_clean_specificity": 0.0,
+    "mode_recall_by_mode": {
+      "popularity_fallback": 1.0,
+      "price_band_shift": 0.0,
+      "stale_index": 0.0
+    },
+    "consistency_violations": {
+      "flag_clean_but_slate_differs": 0,
+      "flag_corrupted_but_slate_unchanged": 0,
+      "flag_clean_but_mode_set": 0,
+      "flag_corrupted_but_mode_none": 0
+    }
+  },
+  "price_rule": {
+    "final_score": 0.370167,
+    "S_repair": 0.360008,
+    "S_audit": 0.556233,
+    "S_mode": 0.116466,
+    "S_consistency": 1.0,
+    "repair_rbo_by_condition": {
+      "none": 0.997001,
+      "popularity_fallback": 0.081359,
+      "price_band_shift": 0.094542,
+      "stale_index": 0.267129
+    },
+    "audit_recall_by_mode": {
+      "popularity_fallback": 0.0,
+      "price_band_shift": 0.349398,
+      "stale_index": 0.0
+    },
+    "audit_clean_specificity": 0.996,
+    "mode_recall_by_mode": {
+      "popularity_fallback": 0.0,
+      "price_band_shift": 0.349398,
+      "stale_index": 0.0
+    },
+    "consistency_violations": {
+      "flag_clean_but_slate_differs": 0,
+      "flag_corrupted_but_slate_unchanged": 0,
+      "flag_clean_but_mode_set": 0,
+      "flag_corrupted_but_mode_none": 0
+    }
+  }
+}
