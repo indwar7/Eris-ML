@@ -149,7 +149,7 @@ def test_malformed_battery():
     expect_invalid(dup_item, ans, "duplicated item", "duplicate item in slate")
     wrong_ids = good.copy()
     wrong_ids["slate_id"] = wrong_ids["slate_id"].replace({"T1": "TX"})
-    expect_invalid(wrong_ids, ans, "do not match", "wrong slate_id set")
+    expect_invalid(wrong_ids, ans, "missing", "missing required slate_id")
     bad_flag = good.copy()
     bad_flag.loc[bad_flag.index[0], "corrupted"] = 2
     expect_invalid(bad_flag, ans, "0 or 1", "flag out of range")
@@ -189,6 +189,32 @@ def test_deterministic_and_stable():
     scores = {grade(sub, ans) for _ in range(5)}
     assert len(scores) == 1
     print(f"  ok  5 repeat gradings identical -> {scores.pop():.6f}")
+
+
+def test_partial_answers_tolerated():
+    """The platform may split answers.csv into public/private portions —
+    row-wise (some positions of each slate) or slate-wise (some slates).
+    The grader must score whatever portion it is given, and a perfect
+    submission must still score 1.0 on any portion."""
+    ans = toy_answers()
+    sub = perfect_sub(ans)
+
+    # row-wise split: keep positions 2, 5, 7 of every slate
+    part_rows = ans[ans.position.isin([2, 5, 7])].reset_index(drop=True)
+    s, comp = grade(sub, part_rows, verbose=True)
+    assert abs(s - 1.0) < 1e-9, s
+    assert comp["S_consistency"] == 1.0
+
+    # slate-wise split: only two of the four slates
+    part_slates = ans[ans.slate_id.isin(["T1", "T3"])].reset_index(drop=True)
+    s2 = grade(sub, part_slates)
+    assert abs(s2 - 1.0) < 1e-9, s2
+
+    # copy-emitted on the row-wise portion stays consistent and low
+    s3, comp3 = grade(copy_emitted_sub(ans), part_rows, verbose=True)
+    assert comp3["S_consistency"] == 1.0 and s3 < 0.5
+    print(f"  ok  partial answers: perfect=1.0 (rows+slates), "
+          f"copy-emitted={s3:.4f}")
 
 
 def test_real_dataset_if_present():

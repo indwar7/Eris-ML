@@ -58,11 +58,11 @@ Public files (train only on these; write predictions to
 ./dataset/public/sample_submission.csv    required output format
 ```
 
-`transactions.csv` is the genuine Online Retail II purchase log (UCI Machine
-Learning Repository, CC BY 4.0) — invoices, stock codes, descriptions,
-quantities, timestamps, unit prices, customer ids and countries. The export
-ends at the evaluation anchor date, so it contains everything the healthy
-service could have known and nothing it could not.
+`transactions.csv` is the retailer's genuine, pseudonymised purchase log —
+invoices, stock codes, descriptions, quantities, timestamps, unit prices,
+customer ids and countries. The export ends at the evaluation anchor date, so
+it contains everything the healthy service could have known and nothing it
+could not.
 
 | Column | Type | File | Description |
 | --- | --- | --- | --- |
@@ -119,8 +119,9 @@ it is the metric.
 
 ## Submission format
 
-One CSV, `./working/submission.csv`, with exactly 10 rows per evaluation
-`slate_id` (7,570 rows total) and a header:
+One CSV, `./working/submission.csv`, with a header and exactly 10 rows per
+evaluation `slate_id`: 757 evaluation slates × 10 positions = 7,570 rows,
+matching `sample_submission.csv` exactly in shape:
 
 | Column | Type | Description |
 | --- | --- | --- |

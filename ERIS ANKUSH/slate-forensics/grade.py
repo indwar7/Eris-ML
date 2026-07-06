@@ -37,9 +37,16 @@ ungrounded repairs are strictly dominated; when dataset/public/catalog.csv is
 reachable the CLI additionally reports (not scores) the ungrounded-item rate.
 
 Malformed submissions raise InvalidSubmissionError with a precise reason:
-missing columns, wrong slate set, missing/duplicate positions, duplicate
+missing columns, missing slates, missing/duplicate positions, duplicate
 items inside a slate, empty codes, non-{0,1} flags, unknown modes, or a flag/
 mode that is not constant within its slate.
+
+Platform note: the grader tolerates PARTIAL answer files — the platform may
+split answers.csv row-wise or slate-wise into public/private portions. The
+submission must always be complete (10 rows per evaluation slate); scoring
+restricts itself to the slates/positions present in the answers it is given,
+and submitted slates absent from the answers are ignored. With the full
+answers file the scores are identical to the original definition.
 
 Usage:
     python grade.py <submission.csv> [--answers dataset/private/answers.csv]
@@ -130,13 +137,15 @@ def _validate(sub: pd.DataFrame, ans: pd.DataFrame) -> tuple[pd.DataFrame, pd.Da
 
     expected = set(ans[ID_COL].astype(str))
     got = set(sub[ID_COL])
-    miss, extra = sorted(expected - got), sorted(got - expected)
-    if miss or extra:
+    miss = sorted(expected - got)
+    if miss:
         raise InvalidSubmissionError(
             f"Submission slate_ids do not match the evaluation set: "
-            f"{len(miss)} missing (e.g. {miss[:5]}), {len(extra)} unknown "
-            f"(e.g. {extra[:5]}). Provide exactly the "
-            f"{len(expected)} slate_ids from slates_test.csv.")
+            f"{len(miss)} required slate_id(s) are missing (e.g. {miss[:5]}). "
+            f"Provide every slate_id from slates_test.csv.")
+    # slates not present in the answers (e.g. the platform is scoring a
+    # public/private portion) are simply not scored
+    sub = sub[sub[ID_COL].isin(expected)]
 
     counts = sub.groupby(ID_COL).size()
     wrong = counts[counts != TOP_K]
@@ -184,21 +193,26 @@ def _validate(sub: pd.DataFrame, ans: pd.DataFrame) -> tuple[pd.DataFrame, pd.Da
 # --------------------------------------------------------------------------
 # components
 # --------------------------------------------------------------------------
-def _rbo_at_k(pred: list[str], truth: list[str]) -> float:
-    """Truncated rank-biased overlap of two K-item rankings (p = RBO_P)."""
+def _rbo_at_k(pred: list[str], truth_by_pos: dict[int, str]) -> float:
+    """Truncated rank-biased overlap (p = RBO_P) between the submitted
+    ranking and the healthy slate, which may be OBSERVED ONLY PARTIALLY
+    (truth_by_pos maps observed positions 1..10 to codes). Agreement at
+    depth d is |pred[:d] ∩ observed_truth[:d]| / |observed_truth[:d]|; depths
+    with no observed truth are skipped and the weights renormalised. With all
+    10 positions observed this is exactly the standard truncated RBO."""
     weights = RBO_P ** np.arange(TOP_K)
-    seen_p, seen_t, inter, acc = set(), set(), 0, 0.0
-    for d in range(TOP_K):
-        if pred[d] in seen_t:
-            inter += 1
-        if truth[d] in seen_p:
-            inter += 1
-        if pred[d] == truth[d]:
-            inter += 1
-        seen_p.add(pred[d])
-        seen_t.add(truth[d])
-        acc += weights[d] * inter / (d + 1)
-    return float(acc / weights.sum())
+    pred_seen: set[str] = set()
+    truth_seen: set[str] = set()
+    acc = wsum = 0.0
+    for d in range(1, TOP_K + 1):
+        if d <= len(pred):
+            pred_seen.add(pred[d - 1])
+        if d in truth_by_pos:
+            truth_seen.add(truth_by_pos[d])
+        if truth_seen:
+            acc += weights[d - 1] * len(pred_seen & truth_seen) / len(truth_seen)
+            wsum += weights[d - 1]
+    return float(acc / wsum) if wsum else 0.0
 
 
 def grade(submission, answers, verbose: bool = False):
@@ -215,39 +229,49 @@ def grade(submission, answers, verbose: bool = False):
     ans = ans.sort_values([ID_COL, POS_COL], kind="mergesort")
 
     pred_slates = sub.groupby(ID_COL)[CODE_COL].agg(list)
-    true_slates = ans.groupby(ID_COL)["healthy_code"].agg(list)
-    emitted = ans.groupby(ID_COL)["emitted_code"].agg(list)
+    # observed healthy positions per slate (the answers may be partial)
+    truth_pos = {i: dict(zip(g[POS_COL], g["healthy_code"]))
+                 for i, g in ans.groupby(ID_COL)}
     truth = ans.drop_duplicates(ID_COL).set_index(ID_COL)
     pred = (sub.drop_duplicates(ID_COL).set_index(ID_COL)
             .reindex(truth.index))
 
     ids = truth.index
     true_cond = truth[MODE_COL]                       # none / 3 failure modes
-    true_flag = truth["corrupted"]
     pred_flag = pred[FLAG_COL]
     pred_mode = pred[MODE_COL]
 
     # ---- S_repair: bucket-balanced RBO@10 against the healthy slate -------
-    rbo = pd.Series({i: _rbo_at_k(pred_slates[i], true_slates[i])
+    # (buckets absent from the supplied answers are skipped)
+    rbo = pd.Series({i: _rbo_at_k(pred_slates[i], truth_pos[i])
                      for i in ids})
     repair_by_bucket = {c: float(rbo[true_cond == c].mean())
-                        for c in ALL_CONDITIONS}
+                        for c in ALL_CONDITIONS if (true_cond == c).any()}
     s_repair = float(np.mean(list(repair_by_bucket.values())))
 
     # ---- S_audit: balanced detection --------------------------------------
     recalls = {m: float((pred_flag[true_cond == m] == 1).mean())
-               for m in MODES}
-    specificity = float((pred_flag[true_cond == "none"] == 0).mean())
-    s_audit = 0.5 * float(np.mean(list(recalls.values()))) + 0.5 * specificity
+               for m in MODES if (true_cond == m).any()}
+    audit_parts = []
+    if recalls:
+        audit_parts.append(float(np.mean(list(recalls.values()))))
+    specificity = (float((pred_flag[true_cond == "none"] == 0).mean())
+                   if (true_cond == "none").any() else None)
+    if specificity is not None:
+        audit_parts.append(specificity)
+    s_audit = float(np.mean(audit_parts)) if audit_parts else 0.0
 
     # ---- S_mode: macro diagnosis recall over corrupted slates -------------
     mode_recalls = {m: float((pred_mode[true_cond == m] == m).mean())
-                    for m in MODES}
-    s_mode = float(np.mean(list(mode_recalls.values())))
+                    for m in MODES if (true_cond == m).any()}
+    s_mode = float(np.mean(list(mode_recalls.values()))) if mode_recalls else 0.0
 
     # ---- S_cons: logical consistency of the three outputs -----------------
-    same_as_emitted = pd.Series(
-        {i: pred_slates[i] == emitted[i] for i in ids})
+    # compare submitted items to the emitted slate at the observed positions
+    merged = ans[[ID_COL, POS_COL, "emitted_code"]].merge(
+        sub[[ID_COL, POS_COL, CODE_COL]], on=[ID_COL, POS_COL], how="left")
+    same_as_emitted = ((merged["emitted_code"] == merged[CODE_COL])
+                       .groupby(merged[ID_COL]).all().reindex(ids))
     v1 = (pred_flag == 0) & ~same_as_emitted
     v2 = (pred_flag == 1) & same_as_emitted
     v3 = (pred_flag == 0) & (pred_mode != "none")
@@ -270,7 +294,8 @@ def grade(submission, answers, verbose: bool = False):
         "repair_rbo_by_condition": {k: round(v, 6)
                                     for k, v in repair_by_bucket.items()},
         "audit_recall_by_mode": {k: round(v, 6) for k, v in recalls.items()},
-        "audit_clean_specificity": round(specificity, 6),
+        "audit_clean_specificity": (round(specificity, 6)
+                                    if specificity is not None else None),
         "mode_recall_by_mode": {k: round(v, 6)
                                 for k, v in mode_recalls.items()},
         "consistency_violations": {
