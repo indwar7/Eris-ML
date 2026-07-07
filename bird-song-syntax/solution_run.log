@@ -1,0 +1,23 @@
+Using device: cpu
+Phrase vocab size: 132 | Bird/individual buckets: 156
+Sequences: 155 total | 140 train | 15 val
+Examples: 37544 train | 2853 val
+Fitted Kneser-Ney models for 140 bird buckets + 1 global backoff.
+Model parameters: 259,285
+epoch 000 [neural-only(warmup)] | train_loss 4.4456 | val_loss 3.5619 | val_top1 0.1739 | val_top3 0.3400 | val_top5 0.4465 | 22.0s
+epoch 001 [neural-only(warmup)] | train_loss 2.8580 | val_loss 2.5429 | val_top1 0.2790 | val_top3 0.5440 | val_top5 0.7042 | 21.9s
+epoch 002 [neural-only(warmup)] | train_loss 2.2245 | val_loss 2.4847 | val_top1 0.2986 | val_top3 0.5503 | val_top5 0.7203 | 21.7s
+epoch 003 [neural-only(warmup)] | train_loss 1.9808 | val_loss 2.5011 | val_top1 0.2951 | val_top3 0.5938 | val_top5 0.7227 | 22.1s
+epoch 004 [neural-only(warmup)] | train_loss 1.8370 | val_loss 2.5031 | val_top1 0.3046 | val_top3 0.5973 | val_top5 0.7245 | 21.5s
+epoch 005 [neural-only(warmup)] | train_loss 1.7415 | val_loss 2.5419 | val_top1 0.3039 | val_top3 0.5808 | val_top5 0.7203 | 22.0s
+epoch 006 [neural-only(warmup)] | train_loss 1.6643 | val_loss 2.6629 | val_top1 0.2678 | val_top3 0.5556 | val_top5 0.7094 | 21.8s
+epoch 007 [neural-only(warmup)] | train_loss 1.6087 | val_loss 2.7605 | val_top1 0.2583 | val_top3 0.5426 | val_top5 0.7038 | 23.1s
+epoch 008 [gated] | train_loss 0.4333 | val_loss 1.9528 | val_top1 0.5142 | val_top3 0.7978 | val_top5 0.8770 | 29.8s
+epoch 009 [gated] | train_loss 0.4273 | val_loss 1.9541 | val_top1 0.5142 | val_top3 0.7974 | val_top5 0.8770 | 27.7s
+epoch 010 [gated] | train_loss 0.4273 | val_loss 1.9545 | val_top1 0.5142 | val_top3 0.7974 | val_top5 0.8770 | 27.6s
+epoch 011 [gated] | train_loss 0.4271 | val_loss 1.9547 | val_top1 0.5142 | val_top3 0.7974 | val_top5 0.8770 | 27.8s
+epoch 012 [gated] | train_loss 0.4272 | val_loss 1.9546 | val_top1 0.5142 | val_top3 0.7974 | val_top5 0.8770 | 28.1s
+epoch 013 [gated] | train_loss 0.4273 | val_loss 1.9547 | val_top1 0.5142 | val_top3 0.7974 | val_top5 0.8770 | 27.7s
+Early stopping at epoch 13 (best val_top1=0.5142)
+Fitted temperature: 1.5
+Wrote 2362 predictions to ./working/submission.csv

@@ -1,0 +1,25 @@
+{
+  "dataset_name": "Binance cryptocurrencies historical daily data",
+  "source_url": "https://zenodo.org/records/8187872",
+  "download_url": "https://zenodo.org/records/8187872/files/historical%20data%20and%20indicators.zip?download=1",
+  "license_name": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/legalcode",
+  "citation": "Serhii Kanyhin (2023). Binance cryptocurrencies historical daily data [Data set]. Zenodo. https://doi.org/10.5281/zenodo.8187872",
+  "accession_or_doi": "10.5281/zenodo.8187872",
+  "access_date": "2026-07-08",
+  "downloaded_files": [
+    "source_daily_ohlcv.zip"
+  ],
+  "extracted_files": "289 per-asset CSVs under data/raw/historical_data/",
+  "sha256_checksums": {
+    "source_daily_ohlcv.zip": "ce9a73eb817d0d9c111f296f7dfdea1694d3bc8149d36375e6da25ce36fbed1f",
+    "dataset/raw/prices.csv": "9b07560e9994e1ee3af4cb0b2bd2596878bc3ee61a8725954863866fa5d82151"
+  },
+  "rows_in_combined_table": 195588,
+  "assets_in_combined_table": 289,
+  "date_range": [
+    "2021-06-01",
+    "2023-06-30"
+  ],
+  "transformation_summary": "Only the per-asset daily OHLCV files under 'historical data/' inside the archive are used (the 'technical indicators/' folder is discarded). The per-asset CSVs are concatenated unchanged into the long-format table dataset/raw/prices.csv with columns symbol, open_time, close_time, open, high, low, close, volume_busd. All further transformations (asset anonymization, window selection, per-window normalization, deterministic +/-0.2% price jitter, strategy simulation and label construction) happen in prepare.py with fixed seeds."
+}

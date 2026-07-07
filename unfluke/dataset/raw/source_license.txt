@@ -1,0 +1,12 @@
+Source data license
+===================
+
+Dataset: Binance cryptocurrencies historical daily data
+Record:  https://zenodo.org/records/8187872
+DOI:     10.5281/zenodo.8187872
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+         https://creativecommons.org/licenses/by/4.0/legalcode
+
+Citation: Serhii Kanyhin (2023). Binance cryptocurrencies historical daily data [Data set]. Zenodo. https://doi.org/10.5281/zenodo.8187872
+
+The upstream record distributes real daily OHLCV market history for 289 cryptocurrency assets (2021-06-01 to 2023-06-30). Attribution is preserved here and in data/source_metadata.json as required by CC BY 4.0.

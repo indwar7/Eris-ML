@@ -1,0 +1,40 @@
+# Task configuration — Babel Gauge: Legacy Telemetry Log Canonicalization
+name: babel-gauge-legacy-log-canonicalization
+title: "Babel Gauge: Legacy Telemetry Log Canonicalization"
+domain: sequence-to-sequence   # string-to-string transduction learned from pairs
+task_type: seq2seq-text-normalization
+modality: text-log-lines       # no pretrained/foundation models, no LLMs, no external data
+dataset:
+  name: legacy-telemetry-logs-synthetic
+  description: dataset/dataset-description.md
+  generator: dataset/generate_dataset.py        # synthetic, deterministic, seed 20260707
+  raw_files:
+    - dataset/raw/telemetry_lines.csv
+    - dataset/raw/sites.csv
+problem_description: problem-description.md
+rubrics: rubrics.md
+prepare:
+  script: prepare.py                            # deterministic; byte-identical reruns
+  public:
+    - prepared/public/train.csv
+    - prepared/public/test.csv
+    - prepared/public/sites.csv
+    - prepared/public/sample_submission.csv
+  private:
+    - prepared/private/answers.csv
+grade:
+  script: grade.py
+  usage: "python grade.py submission.csv --answers prepared/private/answers.csv"
+  metric: mean_field_accuracy                   # per-line field accuracy incl. REJECT handling
+  direction: maximize
+  bounds: [0.0, 1.0]
+  copy_input_baseline: 0.0
+  all_reject_baseline: 0.05
+  quirk_blind_parser_baseline: 0.762
+  reference_solution_score: 1.0                 # task is exactly solvable by design (verified)
+submission:
+  filename: submission.csv
+  columns: [line_id, output]
+  rows: one per line_id in test.csv (8000)
+reference_solution: solution.ipynb
+environment: kaggle-python-docker-image         # pandas/numpy are sufficient

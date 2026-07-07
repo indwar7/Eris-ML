@@ -1,0 +1,14 @@
+{
+  "task": "Recover the hidden next symbol in a symbolic sequence. You are given many full training sequences to learn the sequence structure, and a set of test items; each test item is the left-context window immediately preceding a hidden position (right context is withheld). Predict the single symbol that comes next. Some earlier hidden positions inside a context appear as 'MASK'. The next symbol is genuinely uncertain (branch points), so exact prediction has an irreducible ceiling.",
+  "submission_columns": [
+    "item_id",
+    "symbol"
+  ],
+  "metric": "top-1 accuracy over test items",
+  "vocab_size": 131,
+  "files": {
+    "train.json": "full training sequences ([{seq_id, symbols}])",
+    "test.json": "test items ([{item_id, context}]); predict the next symbol after each context",
+    "sample_submission.csv": "template with a dummy most-common-symbol baseline"
+  }
+}

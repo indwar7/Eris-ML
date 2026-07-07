@@ -1,0 +1,58 @@
+# Task configuration — Unfluke: Skill-vs-Luck Forensics for Systematic Trading Records
+name: unfluke-skill-vs-luck-trading-forensics
+title: "Unfluke: Skill-vs-Luck Forensics for Systematic Trading Records"
+domain: from-scratch            # sequence representation learning + evaluation modeling, no pretrained models
+task_type: composite-skill-detection-ranking-selection
+modality: tabular-trade-sequences   # trade logs + market bars; no LLMs, no external data
+
+dataset:
+  name: anonymized-market-strategy-track-records
+  description: dataset_description.md          # source + license documented there
+  raw_files:
+    - dataset/raw/prices.csv                   # genuine public market history (see dataset_description.md)
+    - dataset/raw/source_license.txt
+  downloader: download_data.py                 # credential-free public download, checksum-verified
+
+problem_description: problem_description.md
+rubrics: rubrics.md
+
+prepare:
+  script: prepare.py                           # deterministic, base seed 20260707; byte-identical reruns
+  entrypoint: "prepare(dataset_dir, public_dir, private_dir)"
+  public:
+    - dataset/public/arenas.csv
+    - dataset/public/trades.csv
+    - dataset/public/train.csv
+    - dataset/public/test.csv
+    - dataset/public/sample_submission.csv
+  private:
+    - dataset/private/answers.csv
+
+grade:
+  script: grade.py
+  usage: "python grade.py submission.csv --answers dataset/private/answers.csv"
+  metric: composite            # 0.40*D (family-stratified skill AUC, rescaled)
+                               # + 0.25*R (mean within-arena Spearman on oos_sharpe)
+                               # + 0.35*P (portfolio precision over base rate)
+                               # - consistency penalty (0.001/row, cap 0.10)
+  direction: maximize
+  bounds: [0.0, 1.0]
+  sample_submission_score: 0.027
+  naive_baseline_score: 0.385        # probe/probe.py (in-sample performance stats only)
+  reference_solution_score: 0.762    # solution.ipynb, validated locally
+
+submission:
+  filename: submission.csv
+  id_column: strategy_id
+  columns: [strategy_id, p_skill, oos_sharpe, select]
+  expected_rows: 2432
+  constraints:
+    p_skill: "[0, 1]"
+    oos_sharpe: "[-10, 10]"
+    select: "{0, 1}, exactly 240 ones"
+
+runtime:
+  max_minutes: 30
+  environment: kaggle-python-docker-image      # pandas / numpy / scikit-learn suffice
+
+reference_solution: solution.ipynb
