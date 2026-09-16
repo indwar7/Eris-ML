@@ -1,0 +1,9 @@
+{
+ "generated_by": "gen_raw.py",
+ "seed": 20260912,
+ "model_id": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+ "n_generations": 4608,
+ "fingerprints_sha256": "aa532eedc8de6e55d7b9c4e6069c2ac5edacdaa6eec47a2ebfbb32f5a24518f3",
+ "elapsed_seconds": 1351.5,
+ "device": "cuda"
+}
