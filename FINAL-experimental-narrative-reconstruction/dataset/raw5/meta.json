@@ -1,0 +1,44 @@
+{
+  "source": "https://api.plos.org/search + journals.plos.org article XML",
+  "fetch_date": "2026-09-13",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "seed": 20260913,
+  "articles_requested": 450,
+  "articles_fetched": 450,
+  "n_papers": 215,
+  "subsections_per_paper": {
+    "4": 68,
+    "5": 63,
+    "6": 37,
+    "7": 33,
+    "8": 14
+  },
+  "total_subsections": 1152,
+  "field_distribution": {
+    "Biochemistry": 88,
+    "Anatomy": 71,
+    "Cell biology": 24,
+    "Ecology": 6,
+    "Genetics": 4,
+    "Computational biology": 4,
+    "Developmental biology": 3,
+    "Neuroscience": 2,
+    "Nutrition": 2,
+    "Microbiology": 2,
+    "Organisms": 2,
+    "Agriculture": 2,
+    "Medicine and health sciences": 1,
+    "Biogeography": 1,
+    "Electronics engineering": 1
+  },
+  "filters": {
+    "results_subsections_min": 4,
+    "results_subsections_max": 8,
+    "subsection_chars": [
+      300,
+      6000
+    ]
+  },
+  "masking": "figure/table numbers -> <FIG> (monotone in order); explicit sequencing words (first/next/finally/having shown/...) -> <SEQ>; bracketed citations removed"
+}

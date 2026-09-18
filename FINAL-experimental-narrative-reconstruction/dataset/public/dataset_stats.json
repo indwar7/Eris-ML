@@ -1,0 +1,30 @@
+{
+  "n_train_papers": 194,
+  "n_test_papers": 65,
+  "paper_disjoint": true,
+  "n_train_subsections": 914,
+  "n_test_subsections": 302,
+  "max_slots_shipped": 5,
+  "slots_per_paper_test": {
+    "4": 23,
+    "5": 42
+  },
+  "field_distribution": {
+    "Biochemistry": 103,
+    "Anatomy": 78,
+    "Cell biology": 21,
+    "Evolutionary biology": 6,
+    "Computational biology": 6,
+    "Bioengineering": 5,
+    "Organisms": 4,
+    "Agriculture": 4,
+    "Genetics": 4,
+    "Microbiology": 4,
+    "Immunology": 4,
+    "Developmental biology": 3
+  },
+  "metric": "mean per-paper position accuracy (fraction of subsections at their true position)",
+  "chance_level": 0.2177,
+  "random_order_expected_score": "chance_level",
+  "identity_order_expected_score": "chance_level"
+}

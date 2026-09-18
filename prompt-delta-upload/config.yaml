@@ -1,0 +1,98 @@
+# Challenge configuration — The Edit That Moved the Answer
+name: prompt-edit-effect-attribution
+title: "The Edit That Moved the Answer"
+domain: natural-language-processing
+dataset:
+  name: prompt-edit-behaviour-fingerprints
+  title: "Prompt-Edit Behaviour Fingerprints: Measured SmolLM2-1.7B-Instruct
+    Response Statistics Across Sixteen Task Framings, Eleven Edit Operations,
+    and Six Input Kinds"
+  short_title: "Prompt-Edit Behaviour Fingerprints (SmolLM2-1.7B-Instruct)"
+  description: dataset-description.md
+  generator: dataset/generator/gen_raw.py     # deterministic; seed 20260912
+  source_data: "REAL measured model behaviour: HuggingFaceTB/SmolLM2-1.7B-
+    Instruct (Apache-2.0, ungated), run greedy over 16 hand-written prompt
+    framings x 12 conditions (11 edit ops + the unedited baseline) x 6
+    hand-written input kinds x 4 hand-written probe questions = 4,608
+    generations. Every response is reduced to a 16-dim numeric behaviour
+    fingerprint at generation time; no response text is stored or released
+    anywhere. No synthetic imagery; the only model in the pipeline is the
+    one being measured, and its outputs are never used as training labels
+    for anything except this task's own derived rank_1..rank_4 ordering."
+  source_url: "https://github.com/indwar7/Eris-ML/releases/download/v1.0/fingerprints.json"
+    # Direct, versioned release-asset download of the actual generated
+    # dataset file (grid.json, meta.json and generator/gen_raw.py are
+    # attached to the same v1.0 release). The instrument used to PRODUCE
+    # this file is documented separately below (source_data, citation):
+    # HuggingFaceTB/SmolLM2-1.7B-Instruct, Apache-2.0, run once via
+    # dataset/generator/gen_raw.py.
+  citation: "HuggingFaceTB, SmolLM2-1.7B-Instruct model card
+    (huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct). Prompt
+    framings, edit operations, input-kind probe questions, and the
+    fingerprint/ordering code are original work for this challenge."
+  license: "CC0-1.0 (public domain dedication) for the measured
+    fingerprints, grid definition and derived splits. Apache-2.0 governs
+    the model's own weights and code, not the text it generates; the model
+    card places no claim or restriction on outputs, so the recorded
+    measurements are an original derived work released here as CC0."
+  doi: null
+  raw_files:
+    - dataset/raw/fingerprints.json   # 4,608 responses -> 16-dim vectors
+    - dataset/raw/grid.json           # families/ops/slices/probes definition
+    - dataset/raw/meta.json           # provenance: seed, model, sha256, runtime
+problem_description: problem-description.md
+rubrics: rubrics.md
+task_type: ranking   # submitted artifact is a permutation of 4 candidates
+                      # per item, scored by positional credit -- not a
+                      # single-label classification (see rubrics.md #3)
+prepare:
+  script: dataset/prepare.py       # exposes prepare(raw, public, private)
+  public:
+    - dataset/public/train.csv             # item_id, family, edit_op,
+                                            # slice_1..4, fp_A/fp_B fields
+                                            # x 4 slices, rank_1..rank_4
+    - dataset/public/test.csv              # same, without rank_1..rank_4
+    - dataset/public/sample_submission.csv # item_id, rank_1..4=slice_1..4
+  private:
+    - dataset/private/answers.csv          # item_id, rank_1..rank_4
+  split_note: "Split is BY PROMPT FRAMING, not by row: every item built
+    from one framing lands entirely in train or entirely in test. Which
+    three of sixteen framings are held out for test is chosen by exact
+    search over all same-size combinations for the item-count ratio
+    closest to the 15-25% band AND the lowest majority-vote-among-
+    candidates shortcut score on the resulting test set -- both measured,
+    not assumed. Within each framing, items are also capped per which
+    candidate lands first in the true ordering (to at most ~1.10x the
+    even share) before the split is chosen, because an unbalanced
+    top-candidate distribution let a zero-signal majority-vote baseline
+    score well above chance; after capping it scores near chance. Any
+    fingerprint column constant across a shipped split (e.g. is_json on
+    the unedited baseline) is dropped from that side before writing, so
+    no constant column ships."
+grade:
+  script: dataset/grade.py           # exposes grade(submission, answers)
+  usage: "python dataset/grade.py submission.csv --answers dataset/private/answers.csv"
+  submission_file: submission.csv
+  submission_columns: [item_id, rank_1, rank_2, rank_3, rank_4]
+  metric: positional_credit
+  metric_formula: "mean_i CREDIT[position of true rank_1 in submitted
+    ordering for item i], where CREDIT = [1.0, 0.33, 0.0, 0.0] for
+    positions [1st, 2nd, 3rd, 4th]"
+  direction: maximize
+  min_score: 0.0
+  max_score: 1.0
+  # ---- anchors: MEASURED on the shipped dataset ---- #
+  sample_submission_score: 0.337      # candidates copied through unranked
+  uniform_random_permutation: 0.350
+  distance_replica_shortcut: 0.418    # plain Euclidean on released means, ranked
+  ridge_regression_baseline: 0.493
+  reference_solution_score: 0.493     # ridge regression, solution.ipynb
+  oracle: 1.000
+  reference_runtime: "~1.5s end-to-end (well inside the 1.5h GPU budget;
+    the task is small tabular data, no GPU compute needed at solve time)"
+submission:
+  filename: submission.csv
+  columns: [item_id, rank_1, rank_2, rank_3, rank_4]
+  rows: one per item_id in test.csv
+reference_solution: solution.ipynb
+environment: kaggle-python-docker-image   # 1x NVIDIA A10G, 10 cores / 62 GB, <1.5h

@@ -1,0 +1,36 @@
+batch_id,institution_prefix,n_snippets,n_distinct_issue_dates,software_creator,software_name,processing_agency
+ak_albatross_ver01,ak,356,26,ABBYY,ABBYY FineReader,Apex CoVantage
+ct_aetna_ver02,ct,331,25,ABBYY,ABBYY FineReader,Apex CoVantage
+mnhi_allemande_ver01,mnhi,252,18,ABBYY Software LLC,ABBYY Recognition Server,not_recorded
+arhi_aerosmith_ver01,arhi,241,18,ABBYY,ABBYY FineReader,Apex CoVantage
+au_abernethy_ver01,au,252,18,ABBYY,ABBYY FineReader,Apex CoVantage
+az_acacia_ver01,az,232,18,iArchives,iArchives OCR Framework,not_recorded
+deu_accio_ver01,deu,160,18,ABBYY,ABBYY Recognition,HTC Global Services
+dlc_1arp_ver01,dlc,252,18,ABBYY,ABBYY FineReader,Apex CoVantage
+iahi_abra_ver01,iahi,224,16,ABBYY Software LLC,ABBYY FineReader Engine,not_recorded
+idhi_angelou_ver01,idhi,208,16,ABBYY,ABBYY Recognition,HTC Global Services
+in_abraham_ver02,in,237,17,iArchives,iArchives OCR Framework,not_recorded
+iune_albatross_ver01,iune,251,18,ABBYY,ABBYY FineReader,Apex CoVantage
+khi_allen_ver02,khi,227,18,iArchives,Abbyy FineReader,not_recorded
+lu_angel_ver01,lu,113,13,Prime,Prime Recognition,HTC Global Services
+me_acadien_ver01,me,235,17,ABBYY,ABBYY FineReader,Apex CoVantage
+mimtptc_adrian_ver01,mimtptc,230,18,iArchives,iArchives OCR Framework,not_recorded
+mohi_angelou_ver03,mohi,252,18,iArchives,iArchives OCR Framework,not_recorded
+mthi_adderstongue_ver01,mthi,237,17,ABBYY,ABBYY Recognition,HTC Global Services
+nbu_abbott_ver01,nbu,244,18,iArchives,Abbyy FineReader,not_recorded
+ndhi_alamo_ver01,ndhi,252,18,ABBYY Software LLC,ABBYY FineReader Engine,not_recorded
+njr_allspice_ver02,njr,252,18,ABBYY,ABBYY FineReader,Apex CoVantage
+nmu_agave_ver01,nmu,251,18,iArchives,iArchives OCR Framework,not_recorded
+nn_absaber_ver01,nn,238,17,iArchives,Abbyy FineReader,not_recorded
+nvln_arrowhead_ver01,nvln,252,18,ABBYY,ABBYY FineReader,Apex CoVantage
+ohi_alastor_ver02,ohi,252,18,ABBYY,ABBYY FineReader,Apex CoVantage
+okhi_apache_ver02,okhi,238,17,iArchives,iArchives OCR Framework,not_recorded
+oru_argonaut_ver01,oru,238,17,iArchives,Abbyy FineReader,not_recorded
+prru_abeja_ver01,prru,214,18,iArchives,iArchives OCR Framework,not_recorded
+scu_albinoskunk_ver02,scu,252,18,ABBYY,ABBYY FineReader,Apex CoVantage
+tu_anita_ver01,tu,249,18,iArchives,iArchives OCR Framework,not_recorded
+ncu_adam_ver02,ncu,239,18,iArchives,iArchives OCR Framework,not_recorded
+uuml_anderson_ver01,uuml,252,18,iArchives,Newpah,not_recorded
+vtu_adamant_ver01,vtu,227,17,iArchives,iArchives OCR Framework,not_recorded
+wvu_antares_ver02,wvu,233,17,ABBYY,ABBYY FineReader,Apex CoVantage
+ak_amaranth_ver01,ak,244,18,ABBYY,ABBYY FineReader,Apex CoVantage

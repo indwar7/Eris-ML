@@ -1,0 +1,24 @@
+PLOS (Public Library of Science) research articles
+Search API:   https://api.plos.org/search
+Article XML:  https://journals.plos.org/plosone/article/file?id=<doi>&type=manuscript
+Fetched: 2026-09-13
+
+LICENCE
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+Every PLOS research article carries the CC BY licence in its own <license>
+block: "This is an open-access article distributed under the terms of the
+Creative Commons Attribution License, which permits unrestricted use,
+distribution, and reproduction in any medium, provided the original author
+and source are credited."
+
+Commercial use is permitted with attribution.
+
+ATTRIBUTION
+Each paper is identified by DOI in the raw corpus.
+
+CONTENT
+The ground truth is the authors' own ordering of their Results
+subsections, as published. No annotation was created for this dataset
+and no content is model-generated.

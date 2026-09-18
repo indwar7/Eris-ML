@@ -1,0 +1,42 @@
+{
+  "source": "https://dumps.wikimedia.org/enwiktionary/latest/enwiktionary-latest-pages-articles.xml.bz2",
+  "fetch_date": "2026-09-18",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "seed": 20260918,
+  "english_entries_scanned": 80346,
+  "n_words": 8960,
+  "n_pairs": 20427,
+  "accents": [
+    "AU",
+    "GA",
+    "NZ",
+    "RP"
+  ],
+  "accent_distribution": {
+    "AU": 2543,
+    "GA": 7655,
+    "NZ": 1409,
+    "RP": 8820
+  },
+  "words_by_accent_count": {
+    "2": 7033,
+    "3": 1347,
+    "4": 580
+  },
+  "filters": {
+    "headword": "lowercase a-z, >=3 chars",
+    "min_accents_per_word": 2,
+    "phoneme_length": [
+      2,
+      40
+    ],
+    "accents_kept": [
+      "AU",
+      "GA",
+      "NZ",
+      "RP"
+    ]
+  },
+  "normalisation": "slashes, stress marks, length marks, syllable dots, parentheses removed"
+}

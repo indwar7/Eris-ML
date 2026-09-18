@@ -1,0 +1,30 @@
+Chronicling America / National Digital Newspaper Program (NDNP)
+Library of Congress
+Source: https://chroniclingamerica.loc.gov/
+
+Data fetched from the public bulk-data mirror at
+https://chroniclingamerica.loc.gov/data/batches/ on 2026-08-12.
+
+All text in snippets.jsonl is raw OCR output (ALTO XML <String CONTENT="...">
+values, concatenated) produced by the digitization vendor's OCR engine for
+each real NDNP batch, as recorded in that batch's own ALTO metadata
+(softwareCreator / softwareName / processingAgency). Nothing has been
+cleaned, corrected, or paraphrased.
+
+License: Public Domain Mark.
+
+The Library of Congress's rights statement for Chronicling America is that
+the newspapers in the collection "are in the public domain or have no known
+copyright restrictions." Newspapers published in the United States more than
+95 years ago are in the public domain in their entirety; those published less
+than 95 years ago are also believed to be in the public domain but may contain
+some copyrighted third-party material. NDNP admits only newspaper titles/runs
+that the contributing state institution has independently confirmed
+rights-clear for digitization and public redistribution -- that is the basis
+on which the Library publishes this content at all.
+
+Sampled issue dates in this fetch span roughly 1831-1960. Per the Library's
+own advisory, users of snippets with an issue_date within the last 95 years
+should be alert for modern third-party content that may carry copyright;
+batches_meta.csv / snippets.jsonl record issue_date per snippet for exactly
+this purpose.

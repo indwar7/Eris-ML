@@ -1,0 +1,56 @@
+{
+  "source": "Chronicling America / National Digital Newspaper Program (NDNP), Library of Congress",
+  "source_url": "https://chroniclingamerica.loc.gov/data/batches/",
+  "fetch_date": "2026-08-12",
+  "fetch_approach": "Static bulk-data mirror (not the Cloudflare-fronted API). For each candidate batch_id: fetch batch.xml (full issue manifest), evenly sample up to 18 distinct issue dates across the batch's run, fetch each sampled issue's METS to find its first page's ALTO OCR file, fetch that page, and keep every TextBlock with >= 40 characters of OCR text (capped at 14 TextBlocks/page) as one snippet. Batches with < 4 distinct issue dates in their manifest, or that yielded < 60 snippets after fetching, were skipped.",
+  "candidate_selection": "319 candidate batch_ids drawn from the live batches/ index: every one of the 54 institution prefixes present in the index, up to 6 batches per prefix, alphabetically first within prefix. Original fetch (2026-08-12, session 1) worked down this list to 30 kept batches (47 attempted). This continuation session re-invoked build_raw.py (unchanged resume logic, plus a new persistent skip_log.csv so already-404'd candidates are not retried) to extend coverage; it added 5 more kept batches across two ~9-minute rate-limited invocations before the session was stopped to report real progress rather than promise further unattended rounds.",
+  "n_batches_kept": 35,
+  "n_batches_attempted_this_session": 26,
+  "total_snippets": 8417,
+  "snippets_per_batch": {
+    "min": 113,
+    "median": 241,
+    "max": 356
+  },
+  "issue_dates_per_batch": {
+    "min": 13,
+    "median": 18,
+    "max": 26
+  },
+  "n_distinct_institution_prefixes": 34,
+  "vendor_metadata_coverage": {
+    "software_creator_populated": 35,
+    "processing_agency_populated": 17,
+    "n_batches": 35,
+    "note": "processing_agency (the contracted digitization vendor, e.g. Apex CoVantage, HTC Global Services) is present for about half the batches; software_creator/software_name (the OCR engine itself, e.g. ABBYY FineReader, iArchives OCR Framework) is present for all 35 -- some older/smaller-awardee batches never recorded the processing agency in their ALTO, only the OCR engine. Batches with no recorded processing agency carry the literal value 'not_recorded' in batches_meta.csv rather than an empty cell."
+  },
+  "skip_log_note": "skipped_batches (this file) persists every candidate batch_id that was attempted and not kept, with the reason, so re-running build_raw.py does not waste rate-limited requests re-attempting known-bad candidates. 20 batch_ids are logged, all 'http 404 on batch.xml' -- listed in the mirror's index but not actually present.",
+  "rate_limiting": {
+    "observed": true,
+    "handling": "On HTTP 429 the fetcher sleeps 30s and retries the same request (up to 3 attempts). Pace held at 1.1s between requests (~55 req/min), unchanged from the original fetch."
+  },
+  "status": "IN PROGRESS, NOT YET AT THE 60-BATCH TARGET. Stopped at 35 kept batches / 8417 snippets after two ~9-minute extension rounds (real measured throughput: roughly 2-3 kept batches per round given the mirror's ~1.1s/request pace plus frequent 404s on thin/withdrawn candidates in this stretch of the candidate list). Reaching 60+ batches requires further synchronous invocations of `python dataset/generator/build_raw.py` in later sessions -- it will resume cleanly from the 35 batches and skip_log.csv already on disk. The committed dataset/raw/ files at this checkpoint are valid, uncorrupted, and safe to build on incrementally; they are just short of the 60-batch adversarial-robustness target stated in the task.",
+  "prior_session_note": "Original fetch (30 batches, 7222 snippets, 8600s wall-clock) is fully preserved and included in the totals above; see ATTRIBUTION.txt and git history for that session's own detailed skipped_batches_sample.",
+  "skipped_batches": {
+    "cohi_abbeyville_ver01": "http 404 on batch.xml",
+    "curiv_ahwahnee_ver01": "http 404 on batch.xml",
+    "fu_albert_ver01": "http 404 on batch.xml",
+    "gu_abby_ver02": "http 404 on batch.xml",
+    "hihouml_angel_ver01": "http 404 on batch.xml",
+    "kyu_airplane_ver01": "http 404 on batch.xml",
+    "mb_allspice_ver01": "http 404 on batch.xml",
+    "mdu_alvarez_ver01": "http 404 on batch.xml",
+    "msar_abolitionist_ver02": "http 404 on batch.xml",
+    "nhd_avalon_ver02": "http 404 on batch.xml",
+    "pst_altoona_ver02": "http 404 on batch.xml",
+    "rp_aboleth_ver01": "http 404 on batch.xml",
+    "sdhi_apple_ver01": "http 404 on batch.xml",
+    "txdn_albatross_ver01": "http 404 on batch.xml",
+    "uriv_elodia_ver01": "http 404 on batch.xml",
+    "vi_abingdon_ver01": "http 404 on batch.xml",
+    "vnstcsc_adelphi_ver01": "http 404 on batch.xml",
+    "wa_alder_ver01": "http 404 on batch.xml",
+    "whi_ada_ver01": "http 404 on batch.xml",
+    "wyu_aarakocra_ver01": "http 404 on batch.xml"
+  }
+}

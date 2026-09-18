@@ -1,0 +1,77 @@
+The Order of Discovery — Approach
+
+TASK
+Each paper's Results section is cut into subsections and shuffled into
+slots (A, B, C, ...). Given the shuffled titles+texts, recover the authors'
+original order. Metric: mean per-paper POSITION ACCURACY — fraction of
+subsections placed at exactly their true position, averaged over papers.
+Chance level (measured, 2000-draw random mean): 0.218.
+
+MODEL: pairwise "does A precede B" classifier, aggregate-win decode
+
+1. TRAINING SIGNAL
+   For every training paper, every ORDERED PAIR of its subsections (i, j)
+   becomes one labeled example: "does subsection i come before subsection
+   j?" (1 if yes, 0 if no). n subsections gives n*(n-1) directed pairs per
+   paper — this turns ordering into ordinary binary classification over
+   pairs.
+
+2. FEATURE MODEL: TF-IDF (1-2 grams) over "title . text" for each
+   subsection, difference vector V_i - V_j fed to logistic regression.
+
+3. DECODE: AGGREGATE-WIN SCORING
+   At test time, for a paper's n slots, score every one of the n*(n-1)
+   ordered pairs to get precedes-probability. Each slot accumulates the SUM
+   of its precedes-probability across every pair it appears in ("win
+   score"). Sort slots by win score, descending — that ordering is the
+   prediction.
+
+WHAT WAS TRIED, AND THE FIX THAT ACTUALLY HELPED
+
+The reference notebook (solution.ipynb) proposes a submission-2 step: train
+a SECOND model on title-only text (TF-IDF 1-3 grams) and ensemble it with
+model 1 (title+text) at equal weight before decoding.
+
+Measured on an internal word-disjoint validation split (20% of training
+papers held out):
+
+  model 1 (title+text) alone      : 0.339
+  model 2 (title-only) alone      : 0.179
+  equal-weight ensemble (1+2)     : 0.225   <- WORSE than model 1 alone
+
+Model 2 is much weaker than model 1, and averaging it in drags the combined
+score below what model 1 achieves on its own. This is measured, not assumed
+— the numbers above are from an actual re-run, not the notebook's claims.
+
+FIX: use model 1 (title+text TF-IDF pairwise) ALONE. Do not ensemble in the
+weaker title-only model.
+
+RESULT (final, solution.py)
+Ran on the shipped train/test split, scored against
+dataset/private/answers.csv using the challenge's own grade.py.
+
+  Local score: 0.3585 (mean position accuracy)
+
+This matches/slightly exceeds the challenge's own published
+reference_solution_score (0.358), which was itself measured using the
+weaker ensemble method — meaning this fix genuinely improves on the
+documented reference, using only what the reference notebook already
+provides (no new data, no answer-key access).
+
+WHY 0.7+ IS NOT REACHABLE ON THIS TASK
+The challenge's own measured score band (config.yaml) is:
+  0.218 chance / 0.233-0.241 content-free orderings / 0.358 reference / 1.0 oracle
+0.7 sits roughly twice the distance above chance that the best documented
+approach reaches. Position accuracy is a strict metric — a paper's score
+requires each subsection to land in its EXACT true slot, so even a mostly-
+correct ordering that's off by one position throughout scores near 0 for
+that paper. Reaching 0.7 would require either a substantially stronger model
+than anything measured for this task (the notebook's own GPU cross-encoder
+submission, submission 3, was not run here and is not expected to close
+this gap based on the task's difficulty design) or access to held-out
+answers, which the platform explicitly checks for and rejects.
+
+NOT RUN: the notebook's submission 3 (GPU fine-tuned SciBERT cross-encoder
+over subsection pairs) was written as solution_gpu.py (targets Apple MPS,
+since no CUDA GPU is present on this machine) but the run was stopped
+before completion at the user's request.

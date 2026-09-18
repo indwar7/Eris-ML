@@ -1,0 +1,12 @@
+{
+  "n_train_batches": 19,
+  "n_test_batches": 16,
+  "n_train_snippets": 4194,
+  "n_test_bags": 110,
+  "n_test_snippets": 3687,
+  "bag_size_min": 16,
+  "bag_size_max": 50,
+  "test_snippets_are_distinct": true,
+  "submission_shape": "one row per bag: bag_id, batch_id (one label per snippet, whitespace-separated, in test.csv snippet order)",
+  "note": "Batch identities (train or test) are deliberately not published: they are answer-adjacent metadata. Every test row is a distinct source snippet -- no snippet appears twice in the test set."
+}

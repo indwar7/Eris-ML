@@ -1,0 +1,55 @@
+{
+  "source": "https://api.plos.org/search + journals.plos.org article XML",
+  "fetch_date": "2026-09-12",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "seed": 20260912,
+  "articles_requested": 1800,
+  "articles_fetched": 1800,
+  "n_paragraphs": 20119,
+  "moves": [
+    "discussion",
+    "introduction",
+    "methods",
+    "results"
+  ],
+  "move_distribution": {
+    "discussion": 4950,
+    "introduction": 5071,
+    "methods": 5233,
+    "results": 4865
+  },
+  "field_distribution": {
+    "Biochemistry": 103,
+    "Anatomy": 78,
+    "Cell biology": 21,
+    "Computational biology": 6,
+    "Evolutionary biology": 6,
+    "Bioengineering": 5,
+    "Agriculture": 4,
+    "Immunology": 4,
+    "Microbiology": 4,
+    "Genetics": 4,
+    "Organisms": 4,
+    "Nutrition": 3,
+    "Biogeography": 3,
+    "Developmental biology": 3,
+    "Clinical medicine": 2
+  },
+  "filters": {
+    "min_chars": 400,
+    "max_chars": 2500,
+    "max_paragraphs_per_article_per_move": 3,
+    "min_paragraphs_per_move": 1200
+  },
+  "masking": "section headings are never shipped; explicit self-reference naming a move is replaced with <REF>; bracketed citation markers are removed",
+  "n_papers": 259,
+  "total_subsections": 1420,
+  "subsections_per_paper": {
+    "4": 79,
+    "5": 70,
+    "6": 41,
+    "7": 44,
+    "8": 25
+  }
+}

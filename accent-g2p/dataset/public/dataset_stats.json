@@ -1,0 +1,43 @@
+{
+  "n_train_words": 7616,
+  "n_test_words": 1344,
+  "word_disjoint": true,
+  "n_train_rows": 24822,
+  "n_test_rows": 4286,
+  "accents": [
+    "AU",
+    "GA",
+    "NZ",
+    "RP"
+  ],
+  "train_direction_distribution": {
+    "AU->GA": 1254,
+    "AU->NZ": 867,
+    "AU->RP": 2048,
+    "GA->AU": 1254,
+    "GA->NZ": 656,
+    "GA->RP": 6439,
+    "NZ->AU": 867,
+    "NZ->GA": 656,
+    "NZ->RP": 1147,
+    "RP->AU": 2048,
+    "RP->GA": 6439,
+    "RP->NZ": 1147
+  },
+  "test_direction_distribution": {
+    "AU->GA": 223,
+    "AU->NZ": 133,
+    "AU->RP": 359,
+    "GA->AU": 223,
+    "GA->NZ": 110,
+    "GA->RP": 1127,
+    "NZ->AU": 133,
+    "NZ->GA": 110,
+    "NZ->RP": 191,
+    "RP->AU": 359,
+    "RP->GA": 1127,
+    "RP->NZ": 191
+  },
+  "test_rows_requiring_change": 3804,
+  "metric": "change-segment accuracy: predicted vs true target phoneme string, scored only on segments that differ from the source"
+}

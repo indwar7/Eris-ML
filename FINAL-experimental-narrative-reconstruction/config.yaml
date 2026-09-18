@@ -1,0 +1,159 @@
+# Challenge configuration — Experimental Narrative Reconstruction
+name: experimental-narrative-reconstruction
+title: "The Order of Discovery"
+domain: natural-language-processing
+tags: [text]
+dataset:
+  name: plos-experimental-order-dataset
+  title: "PLOS Experimental Sequences: Real Results Sections in Author Order"
+  short_title: "PLOS Experimental Narrative Corpus"
+  description: dataset-description.md
+  generator: dataset/generator/build_raw.py
+  source_data: "REAL PLOS research-article prose end to end. Each item is one
+    paper's Results section cut into the titled subsections the authors wrote,
+    in the order they wrote them. The label is that order -- the authors' own
+    structuring of their argument, recorded in the archive. Not a human
+    annotation created for this dataset, and not a model output."
+  source_url: "https://api.plos.org/search"
+  distinctness: "This is not section classification (every item is Results),
+    not topic classification (the paper's discipline is published), and not
+    generic sentence ordering (items are multi-paragraph experiments with
+    titles, not sentences). The solver must recover the LOGICAL ORDER of a
+    chain of experiments -- which claim presupposes which -- with the surface
+    order cues (figure numbers, 'first/next/finally', 'as shown above') masked
+    out. Every item shares register, authorship and statistical density, so
+    there is no stylistic tell; the only signal is scientific presupposition."
+  citation: "PLOS (Public Library of Science). Article content retrieved via the
+    PLOS Search API and article XML endpoint, 2026-09-13."
+  license: "CC BY 4.0"
+  license_url: "https://creativecommons.org/licenses/by/4.0/"
+  license_note: "Every PLOS research article carries the Creative Commons
+    Attribution licence in its own <license> block: \"This is an open-access
+    article distributed under the terms of the Creative Commons Attribution
+    License, which permits unrestricted use, distribution, and reproduction in
+    any medium, provided the original author and source are credited.\"
+    Commercial use is permitted with attribution. Each paper is identified by
+    DOI in the raw corpus. See dataset/raw/ATTRIBUTION.txt."
+  raw_files:
+    - dataset/raw/papers.jsonl        # doi, field, n_subsections, subsections[] IN AUTHOR ORDER
+    - dataset/raw/paper_meta.csv      # doi, field, n_subsections
+    - dataset/raw/meta.json           # fetch provenance, filters, masking policy
+    - dataset/raw/ATTRIBUTION.txt
+problem_description: problem-description.md
+rubrics: rubrics.md
+prepare:
+  script: prepare.py                  # exposes prepare(raw, public, private); seed 20260913
+  public:
+    - dataset/public/train.csv               # paper_id, field, n_slots, slot_A_title, slot_A_text,
+      #   ... slot_E_title, slot_E_text, true_order. ONE ROW PER PAPER; slot
+      #   columns beyond n_slots are blank. Slot letters are assigned AFTER
+      #   shuffling and carry no positional information (verified: slot A's
+      #   true position is spread across all positions). No DOI, article
+      #   title, or author is shipped; paper_id is opaque.
+    - dataset/public/test.csv                # same columns without true_order
+    - dataset/public/sample_submission.csv   # paper_id, predicted_order (shipped order; expected chance ~0.22)
+    - dataset/public/dataset_stats.json
+    - dataset/public/validate_submission.py  # offline structural checks, no answers needed
+  private:
+    - dataset/private/answers.csv            # paper_id, true_order
+  split_note: "One item = one paper, so the split is PAPER-DISJOINT by
+    construction: no paper's subsections appear in both train and test. The
+    raw corpus stores subsections in author order; prepare.py shuffles them per
+    paper with a fixed seed and assigns opaque slot letters afterwards, so the
+    answer is never recoverable from the shipped layout. Figure numbers and
+    explicit sequencing words are masked upstream in the generator. SOURCE
+    LOOKUP: the text is verbatim published prose and PLOS full-text search is
+    public, so a shipped title can locate the article and its document order.
+    Nothing shipped names the article, but the text is its own search key
+    and no signal-preserving transform can change that; closure is by RULE
+    (problem statement + [REQUIRED] rubric: data directory only, no network)
+    with the solver environment expected offline. See dataset-description.md
+    'Source lookup is possible in principle and prohibited by rule'."
+grade:
+  script: grade.py                    # exposes grade(submission, answers)
+  usage: "python grade.py submission.csv dataset/private/answers.csv"
+  submission_file: submission.csv
+  submission_columns: [paper_id, predicted_order]
+  metric: mean_per_paper_position_accuracy
+  metric_formula: "For each paper, the fraction of its subsections placed at
+    exactly their true position (predicted_order[i] == true_order[i]);
+    averaged over papers. 1.0 = perfect; chance = 1/n per paper (a random
+    permutation, or the shipped shuffled order, lands each subsection with
+    probability 1/n), which averages 0.218 over the shipped test split of
+    4- and 5-subsection papers. Graded credit -- three of five in place earns
+    0.6 -- unlike exact match (1-in-120 by chance on five items). Stricter
+    than Kendall's tau in one deliberate way: a globally shifted order has the
+    arc right and every position wrong, and scores 0. A missing paper, or a
+    predicted_order that is not a permutation of that paper's slots, scores
+    0.0 for that paper rather than raising."
+  metric_history: "v1 scored rescaled Kendall's tau (chance 0.5 by
+    construction). Platform agent runs on that grader scored 0.56 / 0.82 /
+    0.90 -- the top of a scale whose bottom half no submission can reach.
+    Position accuracy keeps task and data identical and spreads the same
+    submissions over [0, 1] from a 0.22 floor; the v1 tau anchors were 0.485
+    random / 0.500 chance / 0.539 length / 0.658 reference."
+  direction: maximize
+  min_score: 0.0
+  max_score: 1.0
+  # ---- anchors measured on the SHIPPED dataset ---- #
+  chance_level: 0.218                 # mean(1/n) over the test split; 0.2183 over 2,000 random permutations
+  random_permutation: 0.264           # one seeded draw on the shipped test split
+  shipped_shuffled_order: 0.285       # sample_submission -- one particular random permutation; above
+                                      #   its 0.218 expectation by seed luck on 65 papers, disclosed as-is
+  length_descending: 0.241            # strongest content-free ordering measured (ascending 0.233)
+  reference_solution_score: 0.358     # GRADED -- pairwise TF-IDF logistic, aggregate-win decode, CPU
+  oracle: 1.000
+  note_band: "Difficulty and safety were established empirically on the
+    shipped 259-paper corpus (194 train / 65 test, paper-disjoint), and
+    re-measured under the v2 position-accuracy metric. Chance is 1/n per
+    paper by construction, 0.218 over the test split, confirmed at 0.2183
+    over 2,000 random permutations. Content-free orderings were measured: by
+    subsection length in each direction, the stronger reaching 0.241 -- a
+    +0.02 margin over chance, so surface statistics carry little. The CPU
+    pairwise reference (TF-IDF over title+text, aggregate-win decode) reached
+    0.358, a +0.14 margin over chance and +0.12 over the strongest
+    content-free ordering. Slot letters are assigned after shuffling and the
+    position of slot A in the true order is spread across all positions,
+    confirming the shipped layout leaks nothing (a residual-cue heuristic over
+    every surviving sequencing expression scores 0.522 tau on train vs 0.481
+    identity, i.e. surface cues carry ~nothing). Figure numbers and explicit sequencing
+    words are masked in the corpus itself. The generator was rebuilt after a
+    first version read only top-level <sec> tags and recovered 2 of 6 Results
+    subsections on the reference article; fixed by tracking nesting depth at
+    tag-open time. Corpus size was limited by PLOS API rate limiting during
+    construction; the generator supports --articles and a --start page offset
+    for scaling, and a single worker at ~1.2 s between requests is the rate
+    PLOS sustains."
+  band_evidence: "Measured points under position accuracy, strictly ordered:
+    0.218 (chance, = 2,000-draw random mean) / 0.233 (length ascending) /
+    0.241 (length descending) / 0.358 (reference) / 1.000 (oracle). One
+    seeded random draw scores 0.264 and the shipped shuffled order 0.285 --
+    both single permutations on 65 papers, above the 0.218 expectation by
+    seed variance and disclosed rather than re-drawn. The reference sits
+    clearly above every content-free ordering, and the 0.64 gap to 1.0 is
+    the headroom a cross-encoder that reads subsection pairs jointly is
+    expected to close in part; the v1 tau agent runs (0.56 / 0.82 / 0.90)
+    correspond to roughly 0.3 / 0.55 / 0.7 under this metric."
+  reference_caveat: "The shipped reference_pairwise_tfidf was measured with a
+    CPU-only pairwise logistic model over TF-IDF features. solution.ipynb's
+    final submission is a fine-tuned cross-encoder over subsection pairs, which
+    reads both texts jointly and can judge presupposition directly, and was
+    expected to score materially higher on the challenge's A10G runtime."
+  platform_agent_runs_v1_tau: "Three independent solver runs on the platform's
+    A10G environment, graded with the v1 Kendall-tau metric, scored 0.5565 /
+    0.8217 / 0.9000 (best 0.9000); calibration check (variance, saturation,
+    headroom) passed. These sat above the CPU reference (0.658 tau) as the
+    caveat predicted, and below the 1.0 ceiling, with real spread between
+    attempts -- and motivated the switch to position accuracy, since the
+    tau scale's usable range is [0.5, 1]. Residual-cue check on the
+    shipped split: a heuristic using every surviving sequencing expression
+    ('previous', 'further', 'in addition', 'taken together', 'these data',
+    ...) scores 0.522 on train vs 0.481 identity, so surface cues do not
+    explain the agent scores. Any run at or near 1.000 should be treated as
+    source lookup (see split_note) rather than ability."
+submission:
+  filename: submission.csv
+  columns: [paper_id, predicted_order]
+  rows: one per paper_id in test.csv
+reference_solution: solution.ipynb
+environment: kaggle-python-docker-image   # 1x NVIDIA A10G, 10 cores / 62 GB, <1.5h

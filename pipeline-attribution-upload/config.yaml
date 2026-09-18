@@ -1,0 +1,272 @@
+# Challenge configuration — Digitization Pipeline Attribution
+name: pipeline-attribution
+title: "Recovering OCR Batch Origin from Character Noise"
+domain: natural-language-processing
+tags: [text, clustering, unsupervised-learning]
+dataset:
+  name: pipeline-attribution-dataset
+  title: "Newspaper OCR Grouped by Scanning Batch"
+  short_title: "Newspaper OCR Batch-Fingerprint Corpus"
+  # The source program/archive is NOT named in any solver-visible text (review
+  # round 2): the OCR is real and searchable there. Provenance for licensing
+  # lives here (config is not shipped to solvers) and in raw/ATTRIBUTION.txt.
+  # EXCEPTION forced by the platform: the dataset Source URL field is fetched
+  # by the validator, and every program page except the bulk-data root
+  # returns 403 to automated requests (CC deed / about pages were rejected as
+  # "unavailable or does not match"). source_url below is therefore the data
+  # root; the lookup path is closed independently of it (no batch identity
+  # published, opaque labels, windowed text with 0 exact matches, rule).
+  description: dataset/dataset-description.md
+  generator: dataset/generator/build_raw.py    # resumable fetch, rate-limited by source
+  source_data: "REAL historical newspaper text end to end. Text is the actual
+    uncorrected OCR output of a real digitization vendor's pipeline; the label
+    is that batch's own recorded identity in the Library of Congress's NDNP
+    program, not a human annotation or another model's output. Real per-batch
+    OCR-vendor metadata (softwareCreator/softwareName/processingAgency) is
+    read directly from each batch's ALTO XML."
+  source_url: "https://chroniclingamerica.loc.gov/data/batches/"
+  distinctness: "This is not OCR accuracy benchmarking (which scores against a
+    corrected transcript) and not authorship/stylometry (which separates
+    writers, not processing pipelines, and is deliberately confounded with
+    topic in this design's construction -- every snippet in a bag is a
+    DIFFERENT article). The label recovered is a digitization PIPELINE's
+    identity, evidenced only by its systematic character-error fingerprint."
+  citation: "National Digital Newspaper Program (NDNP), Library of Congress.
+    Chronicling America bulk data, fetched 2026-08-12."
+  license: "Public Domain Mark. The Library of Congress states that newspapers
+    in Chronicling America are in the public domain or have no known copyright
+    restrictions; NDNP admits only titles/runs the contributing institution has
+    confirmed rights-clear. Issue dates span ~1831-1960; per the Library's own
+    advisory, snippets with an issue_date within the last 95 years may contain
+    copyrighted third-party material. See dataset/raw/ATTRIBUTION.txt."
+  raw_files:
+    - dataset/raw/snippets.jsonl        # snippet_id, batch_id, lccn, issue_date, text
+    - dataset/raw/batches_meta.csv      # per-batch counts + real vendor metadata
+    - dataset/raw/meta.json             # fetch provenance and statistics
+    - dataset/raw/ATTRIBUTION.txt
+problem_description: problem-description.md
+rubrics: rubrics.md
+prepare:
+  script: prepare.py                  # exposes prepare(raw, public, private); seed 20260812
+  public:
+    - dataset/public/train.csv                  # row_id, text, batch_id (flat, labeled) -- row_id here is an
+      #   OPAQUE per-row index ("train_00000", ...), NOT the raw snippet_id
+      #   (which would leak batch_id via its own "<batch_id>_<lccn>_..." prefix).
+      #   batch_id is an OPAQUE per-batch alias ("batch_NN"), never the
+      #   archive's own batch name (v2: review found real names + a public
+      #   source URL let a solver fetch and exact-match every test row).
+    - dataset/public/test.csv                   # row_id, text -- row_id is "bag_id::<opaque seq>",
+      #   the only identity column; the sequence half carries no batch info
+      #   (an earlier version leaked batch_id through the raw snippet_id here --
+      #   caught when a solver string-split its way to a perfect 1.000 score)
+    - dataset/public/sample_submission.csv      # bag_id, batch_id -- ONE ROW PER BAG; every snippet its
+      #   own group (valid, scores 0.000). Per-bag rows (v3, review round 2):
+      #   the leaderboard slices answers.csv by row, and one-row-per-snippet
+      #   let every bag be cut into two fragments scored as separate bags.
+    - dataset/public/dataset_stats.json         # COUNTS ONLY -- no batch identity, train or
+      #   test (v1 listed all 16 test batch ids here; that list was the first
+      #   link in a reviewer's 1.000-scoring source-lookup attack)
+    - dataset/public/validate_submission.py     # offline structural checks, no answers needed
+  private:
+    - dataset/private/answers.csv               # bag_id, batch_id -- ONE ROW PER BAG; groups = the
+      #   opaque batch label of each snippet in test.csv snippet order. The
+      #   only withheld target; bag_id is the join key.
+    - dataset/private/split_manifest.json       # real batch ids per split + alias map + seeds;
+      #   the identities the public stats file must not carry
+  split_note: "Split is BATCH-DISJOINT (open-set): the 16 test batches never
+    appear in train's 19 batches. This forces a solver to learn a general
+    notion of pipeline-fingerprint similarity rather than memorize a closed
+    vocabulary of known batch identities -- and blunts a measured shortcut
+    (see below). Each test bag draws 2-4 distinct test batches and 8-14
+    snippets per chosen batch, both randomized per bag (v4; v3 drew 3-4 and
+    6-10, v2 drew 3-5 and 3-8 -- see note_band (5)); this shape is ENFORCED at build time, not
+    merely targeted. Bags are written in a golden-ratio balanced order so
+    any contiguous leaderboard slice is representative. Every test row is a DISTINCT
+    source snippet (v2: sampling is without replacement across bags; v1 let
+    2,577 snippets back 4,457 rows, flagged by review). Shipped text is a
+    deterministic 80-97% character window of the source region, so no test
+    row is byte-identical to any archive region."
+grade:
+  script: grade.py                    # exposes grade(submission, answers)
+  usage: "python grade.py submission.csv dataset/private/answers.csv"
+  submission_file: submission.csv
+  submission_columns: [bag_id, batch_id]
+  metric: mean_per_bag_adjusted_rand_index
+  metric_formula: "For each test bag, compute the Adjusted Rand Index (ARI)
+    between the submission's `batch_id` labels (the solver's guessed grouping,
+    one label per snippet in test.csv snippet order) and answers.csv's
+    `batch_id` labels (the true batch of each snippet), clipped to [0, 1].
+    Average over all bags. ARI is chance-normalized: both degenerate
+    submissions (everyone in one group, or every snippet its own group) score
+    exactly 0.0. Submitted labels are arbitrary tokens and never need to match
+    across bags or name the real batch -- only co-membership within a bag is
+    scored, so no matched-assignment/Hungarian alignment step is needed or
+    used. One row per bag means a row-wise leaderboard slice always scores
+    whole bags. A duplicated bag_id or a missing column is rejected outright;
+    a missing bag or a groups cell with the wrong label count scores 0 for
+    that bag only."
+  direction: maximize
+  min_score: 0.0
+  max_score: 1.0
+  # ---- anchors measured on the SHIPPED (v4) dataset by work/baselines_v2.py ---- #
+  all_same_or_singleton: 0.000
+  random_partition: 0.019
+  artifact_position_length_only: 0.013        # no content read -- confirms no structural leak
+  content_only_char_ngram_tfidf: 0.033        # ablation: reads the text, not the noise
+  content_only_word_tfidf: 0.079              # ablation: pure content -- near the noise floor
+  adversarial_global_clustering_oracle_k: 0.094    # ignores bag boundaries, told the true k (unrealistic)
+  adversarial_global_clustering_realistic: 0.094   # same attack, silhouette-estimated k; BANNED by rule
+  full_features_unsupervised_perbag: 0.120
+  charcnn_embedding_perbag: 0.129            # torch training is not bit-reproducible; +-0.01 across runs
+  single_scalar_kmeans: 0.155
+  closed_set_argmax_over_train_batches: 0.194 # rubric-violating shortcut; 0.15 below reference
+  reference_with_oracle_group_count: 0.335    # diagnostic: knowing the true k does NOT help (-0.007)
+  reference_solution_score: 0.342             # RandomForest-probability embedding, GRADED
+  oracle: 1.000
+  # Earlier builds of the same ladder, for the record. v3 (3-4 groups x 6-10
+  # snippets, 127 bags): 0.000 / 0.018 / 0.038 / 0.079 / 0.103 / 0.105 / 0.111 /
+  # 0.127 / 0.130 / 0.210 / reference 0.326; best-of-three platform solver runs
+  # on v3 reached 0.38, short of the 0.40 band floor -- the difficulty knob was
+  # tightened again (v4). v2 (3-5 groups x 3-8 snippets, 169 bags): 0.026 /
+  # 0.032 / 0.047 / 0.082 / 0.084 / 0.089 / 0.092 / 0.097 / 0.118 / 0.203 /
+  # reference 0.276; platform solver runs 0.40-0.43. v1 (pre-review): 0.021 /
+  # 0.024 / 0.072 / 0.096 / 0.099 / 0.133 / 0.139 / reference 0.316; one
+  # platform solver 0.432. The reference's margin over the strongest adversary
+  # is 0.18-0.25 in every build.
+  note_band: "Difficulty and safety were both established empirically, not
+    assumed, through two rounds of real bugs found and fixed. (1) The metric
+    was changed after measurement: raw pairwise co-membership F1 let
+    'everyone in one group' score 0.376, ABOVE a trained reference's 0.289 --
+    Adjusted Rand Index was substituted because it chance-corrects exactly
+    this failure (both degenerate baselines now score 0.000). (2) The
+    measurement harness itself had a scoring bug (assignments keyed by bare
+    snippet_id, silently overwritten when a snippet was reused across
+    different bags by design) that understated every trained approach's true
+    score; caught by a large, unexplained gap against an independently
+    written reference_solution.py, fixed, and every number below is
+    post-fix. A real adversarial attack -- global unsupervised clustering
+    across the whole test corpus, ignoring bag boundaries, exactly the
+    'exploit-a-dataset-artifact-instead-of-a-generalizable-model' shortcut
+    class -- was built and measured before freezing the spec. At the shipped
+    45%-test-batch split it is beaten by the reference by a wide margin
+    under both realistic conditions (0.072 vs 0.316) and a fair
+    oracle-vs-oracle comparison (0.139 vs 0.329); see DESIGN.md 'the
+    adversarial finding' for the full honest writeup, including why holding
+    out MORE test batches (55%) made the gap worse, not better, in earlier
+    (pre-bugfix) testing. (3) REVIEW ROUND 1 found two further real problems,
+    both fixed by redesign and re-measured: a reviewer took the 16 test batch
+    ids from the public stats file, fetched them from the cited archive,
+    exact-matched all 4,457 test rows and scored 1.000; and 2,577 distinct
+    snippets backed those 4,457 rows (70% of rows were reused). v2 publishes
+    no batch identity anywhere (opaque batch_NN labels, counts-only stats,
+    candidate-selection rule withheld), windows every shipped snippet so zero
+    test rows are byte-identical to the archive, samples without replacement
+    so every test row is distinct, enforces the 3-5 x 3-8 bag shape, re-draws
+    the split under a new seed, and adds an explicit no-external-data rule to
+    the problem statement and rubrics. Windowing costs signal -- measured
+    0.191 at an absolute 160-400-char window vs 0.298 unwindowed -- so the
+    window is a high fraction (80-97%) of the region, which recovers 0.276.
+    See DESIGN.md 'Review round 1' for the full writeup, including why the
+    lookup path cannot be closed by text transformation alone against an
+    adversary holding the archive, and why the rule is therefore load-
+    bearing. (4) REVIEW ROUND 2 found four more, all fixed: (a) the source
+    archive was still named in the descriptions -- removed from every
+    solver-visible file; (b) the leaderboard slices answers.csv BY ROW, so
+    one-row-per-snippet answers let every bag be cut in two and each
+    fragment scored as its own bag (24 public fragments had <= 3 rows, where
+    ARI is nearly free; all-singleton scored 0.048 public / 0.000 private)
+    -- answers.csv and submission.csv are now ONE ROW PER BAG (bag_id,
+    groups), so any row-wise slice keeps whole bags; (c) the description
+    claimed per-bag scoring blocks pooled global clustering, which it does
+    not -- the claim is corrected and the shortcut is banned by rule
+    (measured 0.089-0.097, below the 0.276 reference); (d) the grader kept
+    the first of a duplicated id and crashed on a malformed one -- both are
+    now clean InvalidSubmission rejections; the description also referenced
+    config.yaml (not shipped) and quoted only the 0.276 reference while
+    platform runs reached 0.40-0.43 -- both fixed. (5) DIFFICULTY BAND (same
+    round): platform solver runs on v2 sat at 0.40-0.43 against a 0.276
+    reference -- the bottom edge of the target band. The bag shape was swept
+    on the reference (3-5x3-8 0.276 / 3-4x3-8 0.295 / 3-5x5-8 0.289 /
+    3-4x5-8 0.296 / 3-4x6-10 0.326 / 3-3x5-8 0.325 / 2-4x5-8 0.328) and
+    3-4 groups x 6-10 snippets shipped (v3): more evidence per cluster, group
+    count still varying. (6) REVIEW ROUND 3 found three more: (a) word
+    TF-IDF (0.079) was quoted as evidence the task is content-blind, but a
+    trivial length-only feature (character count alone) scored 0.093,
+    ABOVE it -- batches vary in mean snippet length by roughly 10x and one
+    held-out batch is majority-Spanish; disclosed explicitly in both
+    description files rather than re-cut, since re-cutting would lower
+    scores across the board without closing the confound (length still
+    correlates with the underlying digitization run); (b) a repeated
+    bag_id was described as rejecting the whole submission, but the grader
+    only zeroes that one bag -- description corrected to match grade.py;
+    (c) the task named GPU compute as beneficial and shipped a GPU-first
+    framing, but the measured ladder shows the reverse -- the tree-based
+    RandomForest reference (0.326 on v3) beat the char-CNN (0.127) --
+    so the task moved to CPU-only: config.yaml environment, the Compute
+    section, and the GPU rubric line were all corrected to match the
+    measurement. (7) DIFFICULTY BAND, again (same round): the best of
+    three platform solver runs on v3 reached only 0.38 against the 0.326
+    reference (ratio ~1.17x, well below the ~1.5x ratio seen on v2/v1),
+    short of the 0.40 band floor. The bag shape was swept again, this time
+    varying group count downward as well as snippets-per-group upward
+    (2-3x8-14 0.352 / 2-4x8-12 0.338 / 2-3x8-12 0.339 / 2-4x8-14 0.342 /
+    3-4x8-14 0.313 / 3-4x8-16 0.302 -- holding group count at 3-4 and only
+    growing snippets-per-group did not help, since bag count and per-bag
+    training signal both shrink); 2-4 groups x 8-14 snippets shipped (v4):
+    a full 2-3-4 group-count spread (33/32/45 bags) rather than 3-4-only,
+    avoiding the 'fixed narrow group count is a tell' problem seen when a
+    2-3-only shape was tried and rejected (53% of bags would have been
+    2-group, too close to a near-binary task). The whole ladder was
+    re-measured on the v4 data: reference 0.342, adversarial pooled
+    clustering 0.094 (still banned by rule, margin 0.25 over reference),
+    length-only baseline 0.089 (still below reference), 110 bags sized
+    16-50 snippets (well above the 3-row danger zone from round 2, point
+    b). Grader policy unchanged and re-verified (21/21 unit tests): a
+    duplicated bag_id scores 0 for that bag instead of raising."
+  band_evidence: "Fourteen measured points on the shipped v4 data, strictly
+    ordered up to the reference: 0.000 / 0.013 / 0.019 / 0.033 / 0.079 /
+    0.094 / 0.094 / 0.120 / 0.129 / 0.155 / 0.194 / 0.335 / 0.342, reference
+    clearly on top of every non-oracle baseline including the adversarial
+    pooled-clustering attack (margin 0.25 over its oracle-k form) and the
+    rubric-violating closed-set shortcut (0.15). Content-only baselines
+    (word / char n-gram TF-IDF, 0.079 / 0.033) sit at the noise floor, which
+    is the measured form of the 'not stylometry' claim -- though word
+    TF-IDF alone is not proof of content-blindness, since a length-only
+    feature (0.089) sits just below it; see note_band (6a). The char-CNN
+    embedding (0.129) still underperforms the hand-crafted-feature
+    RandomForest approach (0.342) at this data scale -- reported as a genuine
+    finding, and the reason the task ships CPU-only (note_band (6c)). The
+    reference is a floor, not a promise: an independent solver scored 0.432
+    on v1 (reference 0.316), platform solver runs reached 0.40-0.43 on v2
+    (reference 0.276), and the best of three runs reached 0.38 on v3
+    (reference 0.326) -- short of the band floor, which is why v4 exists."
+  split_ratio_note: "Test/train is 0.85 by ROWS (3,568 / 4,194) because the
+    split is by BATCH (16 test / 19 train) and test bags draw every held-out
+    batch nearly to exhaustion. Kept deliberately above the 15-25% row
+    convention: fewer held-out batches strengthens the pooled-clustering
+    shortcut flagged in review round 2 (measured: with 9 test batches it beat
+    the trained reference), and all 16 are needed for 2-4 distinct batches per
+    bag across 110 bags. Train > test in rows and the split is group-disjoint."
+  split_stratification: "45% of the 35 real batches (16) held out for test,
+    batch-disjoint from the 19 train batches. This ratio is the empirically
+    safest point found, not a rounded convention -- 30% left the shortcut
+    dominant (0.113 vs 0.095 reference); 55% made the trained reference worse
+    (fewer train batches) without proportionally hurting the attacker."
+submission:
+  filename: submission.csv
+  columns: [bag_id, batch_id]
+  rows: one per bag in test.csv (groups = whitespace-separated label per snippet, in "::" order)
+reference_solution: solution.ipynb   # 5 progressive submissions; final = RF + char-CNN ensemble, CPU
+reference_solution_note: "The GRADED anchor (reference_solution_score) is
+  submission 3, the deterministic RandomForest-probability embedding (0.342),
+  which every baseline and the agent-band extrapolation are measured against;
+  it runs on CPU only, ~5.5 min end to end. The notebook also builds
+  submission 4, a supervised-contrastive character-CNN (runs on CPU; CUDA
+  used automatically if present, but not required or provisioned; ~0.13), and
+  submission 5, an ensemble of the two (~0.35) -- but the CNN alone measured
+  below the RandomForest reference, so the ensemble ships whichever of
+  submission 3 or 5 scores higher and the final is never below the
+  deterministic reference. The strongest measured approach on this task is
+  tree-based, not neural; the CNN is included as a secondary, non-load-bearing
+  submission, not the recommended path."
+environment: cpu-python-docker-image   # 10 cores / 62 GB, <1.5h, no GPU

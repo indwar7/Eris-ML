@@ -1,0 +1,22 @@
+English Wiktionary (https://en.wiktionary.org), Wikimedia Foundation
+Obtained from the official database dump:
+  https://dumps.wikimedia.org/enwiktionary/latest/enwiktionary-latest-pages-articles.xml.bz2
+Fetched: 2026-09-18
+
+LICENCE
+Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+https://creativecommons.org/licenses/by-sa/4.0/
+Confirmed via the MediaWiki siteinfo API (action=query&meta=siteinfo&siprop=rightsinfo):
+  {"url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+   "text": "Creative Commons Attribution-Share Alike 4.0"}
+
+Commercial use is permitted with attribution and share-alike.
+
+ATTRIBUTION
+Transcriptions are authored by Wiktionary contributors; per-entry
+histories are at en.wiktionary.org/wiki/<word>.
+
+CONTENT
+Accent tags and IPA transcriptions are the archive's own structured
+template values. No annotation was created for this dataset and no content
+is model-generated.
